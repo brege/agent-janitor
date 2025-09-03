@@ -75,8 +75,7 @@ prune_cache() {
     for candidate in \
       "$codex_home/sessions" \
       "$codex_home/log" \
-      "$codex_home/history.jsonl" \
-      "$codex_home/internal_storage.json"; do
+      "$codex_home/history.jsonl"; do
       [[ -e "$candidate" ]] && codex_targets+=("$candidate")
     done
   fi

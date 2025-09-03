@@ -79,11 +79,6 @@ prune_cache() {
     [[ -e "$candidate" ]] && codeium_targets+=("$candidate")
   done
 
-  local default_nvim_cache="$HOME/.cache/nvim/codeium"
-  if [[ -e "$default_nvim_cache" ]]; then
-    codeium_targets+=("$default_nvim_cache")
-  fi
-
   print_path_list "${codeium_targets[@]}"
 
   if [[ "$ACTION" == "--confirm" ]]; then

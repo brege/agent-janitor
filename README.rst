@@ -37,14 +37,13 @@ Here's what's removed in **cache** mode:
   - ``~/.codex/sessions``
   - ``~/.codex/log``
   - ``~/.codex/history.jsonl``
-  - ``~/.codex/internal_storage.json``
+
 - Codeium
 
   - ``~/.codeium/code_tracker/active``
   - ``~/.codeium/code_tracker/history``
   - ``~/.codeium/context_state``
   - ``~/.codeium/database``
-  - ``~/.cache/nvim/codeium`` (Neovim plugin cache)
 
 Here's what's removed in **all** mode:
 
