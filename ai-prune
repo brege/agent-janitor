@@ -3,6 +3,43 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+TARGET=${1:-cache}
+
+if [[ "$TARGET" == "agents" ]]; then
+  shift || true
+  BASEDIR="${1:-$HOME}"
+  if [[ "$#" -gt 0 ]]; then
+    shift || true
+  fi
+  if [[ "$BASEDIR" != "/" ]]; then
+    BASEDIR="${BASEDIR%/}"
+  fi
+
+  print_section() {
+    local label="$1"
+    shift || true
+    local -a paths=("$@")
+    local count=${#paths[@]}
+    if (( count == 0 )); then
+      printf '[i] No %s files found.\n' "$label"
+      return
+    fi
+    printf '[*] %s (%d):\n' "$label" "$count"
+    local path
+    for path in "${paths[@]}"; do
+      printf '    %s\n' "$path"
+    done
+  }
+
+  mapfile -t claude_files < <(find "$BASEDIR" -type f -name 'CLAUDE.md' -print 2>/dev/null | LC_ALL=C sort)
+  mapfile -t agent_files < <(find "$BASEDIR" -type f \( -name 'AGENTS.md' -o -name 'AGENTS.override.md' \) -print 2>/dev/null | LC_ALL=C sort)
+
+  echo "[*] Agent breadcrumbs under $BASEDIR:"
+  print_section "CLAUDE.md" "${claude_files[@]}"
+  print_section "AGENTS.md / AGENTS.override.md" "${agent_files[@]}"
+  exit 0
+fi
+
 bash "$SCRIPT_DIR/claude.sh" "$@"
 bash "$SCRIPT_DIR/codex.sh" "$@"
 bash "$SCRIPT_DIR/codeium.sh" "$@"

@@ -27,7 +27,6 @@ Here's what's removed in **cache** mode:
 - Claude
 
   - ``**/.claude/`` project folders  
-  - ``**/CLAUDE.md`` breadcrumbs  
   - ``/tmp/claude-*`` scratchpads  
   - ``~/.claude/{projects,file-history,debug,session-env,shell-snapshots,statsig,todos}``  
   - ``~/.claude/history.jsonl`` and ``~/.claude/settings.json``  
@@ -51,6 +50,7 @@ Here's what's removed in **all** mode:
 
   - ``~/.claude``
   - ``~/.claude.json*``
+  - ``**/CLAUDE.md`` breadcrumbs
   - ``~/.local/lib/node_modules/@anthropic-ai/claude-code``
 
 - Codex: cache targets plus
@@ -63,3 +63,8 @@ Here's what's removed in **all** mode:
 - Codeium: cache targets plus
 
   - entire ``~/.codeium`` tree
+
+Agent breadcrumbs
+-----------------
+
+Use ``./ai-prune agents [basedir]`` to list both ``CLAUDE.md`` and ``AGENTS.md`` (including ``AGENTS.override.md``) under the given base directory. The basedir defaults to ``$HOME``.

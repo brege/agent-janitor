@@ -63,12 +63,10 @@ print_path_list() {
 prune_cache() {
   echo "[*] Claude cache targets under $BASEDIR:"
   local -a claude_dirs=()
-  local -a claude_files=()
   local -a claude_home_paths=()
   local -a tmp_matches=()
 
   mapfile -t claude_dirs < <(find "$BASEDIR" -mindepth 3 -type d -name '.claude' -print 2>/dev/null || true)
-  mapfile -t claude_files < <(find "$BASEDIR" -type f -name 'CLAUDE.md' -print 2>/dev/null || true)
 
   if [[ -d "$BASEDIR/.claude" ]]; then
     local path
@@ -86,7 +84,7 @@ prune_cache() {
     done
   fi
 
-  local -a claude_targets=("${claude_dirs[@]}" "${claude_files[@]}" "${claude_home_paths[@]}")
+  local -a claude_targets=("${claude_dirs[@]}" "${claude_home_paths[@]}")
   print_path_list "${claude_targets[@]}"
 
   # summarize /tmp files
@@ -133,7 +131,10 @@ prune_all() {
   extra_paths+=("$BASEDIR/.local/lib/node_modules/@anthropic-ai/claude-code")
   local -a json_matches=("$BASEDIR"/.claude.json*)
   shopt -u nullglob
+  local -a claude_files=()
+  mapfile -t claude_files < <(find "$BASEDIR" -type f -name 'CLAUDE.md' -print 2>/dev/null || true)
   extra_paths+=("${json_matches[@]}")
+  extra_paths+=("${claude_files[@]}")
   print_path_list "${extra_paths[@]}"
 
   if [[ "$ACTION" == "--confirm" ]]; then
@@ -141,6 +142,9 @@ prune_all() {
     rm -rf "$BASEDIR/.claude" 2>/dev/null || true
     if [[ ${#json_matches[@]} -gt 0 ]]; then
       rm -f "${json_matches[@]}" 2>/dev/null || true
+    fi
+    if [[ ${#claude_files[@]} -gt 0 ]]; then
+      rm -f "${claude_files[@]}" 2>/dev/null || true
     fi
     npm uninstall -g @anthropic-ai/claude-code --prefix "$BASEDIR/.local" 2>/dev/null || true
   fi
