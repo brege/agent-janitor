@@ -60,6 +60,34 @@ print_path_list() {
   done
 }
 
+scrub_sensitive_data() {
+  echo "[*] Scrubbing sensitive data from Claude config files..."
+
+  shopt -s nullglob
+  local -a json_files=("$BASEDIR"/.claude.json*)
+  shopt -u nullglob
+
+  if [[ ${#json_files[@]} -eq 0 ]]; then
+    echo "    (no .claude.json files found)"
+    return
+  fi
+
+  local json_file
+  for json_file in "${json_files[@]}"; do
+    if [[ ! -f "$json_file" ]]; then
+      continue
+    fi
+
+    if [[ "$ACTION" == "--confirm" ]]; then
+      jq 'del(.oauthAccount.emailAddress, .oauthAccount.displayName, .oauthAccount.organizationName, .projects)' \
+         "$json_file" > "$json_file.tmp" && mv "$json_file.tmp" "$json_file"
+      echo "    Scrubbed: $json_file"
+    else
+      echo "    Would scrub: $json_file"
+    fi
+  done
+}
+
 prune_cache() {
   echo "[*] Claude cache targets under $BASEDIR:"
   local -a claude_dirs=()
@@ -119,6 +147,8 @@ prune_cache() {
       rm -rf "${tmp_matches[@]}" 2>/dev/null || true
     fi
   fi
+
+  scrub_sensitive_data
 }
 
 prune_all() {
@@ -161,3 +191,4 @@ if [[ "$ACTION" != "--confirm" ]]; then
   echo "[!] This was a dry run. No data has been removed."
   echo "    Re-run with '--confirm' to actually delete."
 fi
+
