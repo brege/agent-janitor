@@ -4,7 +4,9 @@ set -e
 [ -w /usr/local/lib ] || { echo "Can't write to /usr/local/lib"; exit 1; }
 [ -w /usr/local/bin ] || { echo "Can't write to /usr/local/bin"; exit 1; }
 
-cp -r "$(dirname "$0")" /usr/local/lib/llm-janitor
+mkdir -p /usr/local/lib/llm-janitor
+cp "$(dirname "$0")"/*.sh /usr/local/lib/llm-janitor/
+cp "$(dirname "$0")"/llm-janitor /usr/local/lib/llm-janitor/
 ln -sf /usr/local/lib/llm-janitor/llm-janitor /usr/local/bin/llm-janitor
 
-echo "Deployed"
+echo "Installed to /usr/local/bin/llm-janitor"
