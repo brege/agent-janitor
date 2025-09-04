@@ -67,4 +67,4 @@ Here's what's removed in **all** mode:
 Agent breadcrumbs
 -----------------
 
-Use ``./ai-prune agents [basedir]`` to list both ``CLAUDE.md`` and ``AGENTS.md`` (including ``AGENTS.override.md``) under the given base directory. The basedir defaults to ``$HOME``.
+Use ``./llm-janitor agents [basedir]`` to list both ``CLAUDE.md`` and ``AGENTS.md`` (including ``AGENTS.override.md``) under the given base directory. The basedir defaults to ``$HOME``.
