@@ -94,7 +94,7 @@ prune_cache() {
   local -a claude_home_paths=()
   local -a tmp_matches=()
 
-  mapfile -t claude_dirs < <(find "$BASEDIR" -mindepth 3 -type d -name '.claude' -print 2>/dev/null || true)
+  mapfile -t claude_dirs < <(find "$BASEDIR" -type d -name '.claude' ! -path "$BASEDIR/.claude" -print 2>/dev/null || true)
 
   if [[ -d "$BASEDIR/.claude" ]]; then
     local path
