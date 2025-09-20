@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # this script can clean claude cached files or all traces of claude
-# usage: ./claude.sh [cache|all] [--dry-run|--confirm] [basedir]
+# usage: ./claude.sh [cache|all|agents] [--dry-run|--confirm] [basedir]
 
 set -euo pipefail
 
@@ -182,7 +182,7 @@ prune_all() {
 case "$TARGET" in
   cache) prune_cache ;;
   all)   prune_all ;;
-  *) echo "Usage: $0 [cache|all] [--dry-run|--confirm] [basepath]" ; exit 1 ;;
+  *) echo "Usage: $0 [cache|all|agents] [--dry-run|--confirm] [basepath]" ; exit 1 ;;
 esac
 
 echo
