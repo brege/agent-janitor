@@ -161,7 +161,7 @@ prune_all() {
   local -a json_matches=("$BASEDIR"/.claude.json*)
   shopt -u nullglob
   local -a claude_files=()
-  mapfile -t claude_files < <(find "$BASEDIR" -type f -name 'CLAUDE.md' -print 2>/dev/null || true)
+  mapfile -t claude_files < <(find "$BASEDIR" -type f \( -name 'CLAUDE.md' -o -name 'CLAUDE.local.md' \) -print 2>/dev/null || true)
   extra_paths+=("${json_matches[@]}")
   extra_paths+=("${claude_files[@]}")
   print_path_list "${extra_paths[@]}"

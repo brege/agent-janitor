@@ -31,11 +31,11 @@ if [[ "$TARGET" == "agents" ]]; then
     done
   }
 
-  mapfile -t claude_files < <(find "$BASEDIR" -type f -name 'CLAUDE.md' -print 2>/dev/null | LC_ALL=C sort)
+  mapfile -t claude_files < <(find "$BASEDIR" -type f \( -name 'CLAUDE.md' -o -name 'CLAUDE.local.md' \) -print 2>/dev/null | LC_ALL=C sort)
   mapfile -t agent_files < <(find "$BASEDIR" -type f \( -name 'AGENTS.md' -o -name 'AGENTS.override.md' \) -print 2>/dev/null | LC_ALL=C sort)
 
   echo "[*] Agent breadcrumbs under $BASEDIR:"
-  print_section "CLAUDE.md" "${claude_files[@]}"
+  print_section "CLAUDE.md / CLAUDE.local.md" "${claude_files[@]}"
   print_section "AGENTS.md / AGENTS.override.md" "${agent_files[@]}"
   exit 0
 fi

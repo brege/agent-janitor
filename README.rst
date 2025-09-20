@@ -50,7 +50,7 @@ Here's what's removed in **all** mode:
 
   - ``~/.claude``
   - ``~/.claude.json*``
-  - ``**/CLAUDE.md`` breadcrumbs
+  - ``**/CLAUDE.md`` and ``**/CLAUDE.local.md`` breadcrumbs
   - ``~/.local/lib/node_modules/@anthropic-ai/claude-code``
 
 - Codex: cache targets plus
