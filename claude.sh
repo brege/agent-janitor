@@ -104,7 +104,6 @@ prune_cache() {
       "$BASEDIR/.claude/history.jsonl" \
       "$BASEDIR/.claude/debug" \
       "$BASEDIR/.claude/session-env" \
-      "$BASEDIR/.claude/settings.json" \
       "$BASEDIR/.claude/shell-snapshots" \
       "$BASEDIR/.claude/statsig" \
       "$BASEDIR/.claude/todos"; do

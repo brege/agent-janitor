@@ -29,7 +29,7 @@ Here's what's removed in **cache** mode:
   - ``**/.claude/`` project folders  
   - ``/tmp/claude-*`` scratchpads  
   - ``~/.claude/{projects,file-history,debug,session-env,shell-snapshots,statsig,todos}``  
-  - ``~/.claude/history.jsonl`` and ``~/.claude/settings.json``  
+  - ``~/.claude/history.jsonl``
 
 - Codex
 
