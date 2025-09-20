@@ -1,12 +1,29 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-[ -w /usr/local/lib ] || { echo "Can't write to /usr/local/lib"; exit 1; }
-[ -w /usr/local/bin ] || { echo "Can't write to /usr/local/bin"; exit 1; }
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LIB_DIR=/usr/local/lib/llm-janitor
+BIN_DIR=/usr/local/bin
 
-mkdir -p /usr/local/lib/llm-janitor
-cp "$(dirname "$0")"/*.sh /usr/local/lib/llm-janitor/
-cp "$(dirname "$0")"/llm-janitor /usr/local/lib/llm-janitor/
-ln -sf /usr/local/lib/llm-janitor/llm-janitor /usr/local/bin/llm-janitor
+[ -w "$(dirname "$LIB_DIR")" ] || { echo "Can't write to $(dirname "$LIB_DIR")"; exit 1; }
+[ -w "$BIN_DIR" ] || { echo "Can't write to $BIN_DIR"; exit 1; }
 
-echo "Installed to /usr/local/bin/llm-janitor"
+mkdir -p "$LIB_DIR"
+
+for src_file in "$SCRIPT_DIR"/*.sh "$SCRIPT_DIR"/llm-janitor; do
+  base_name="${src_file##*/}"
+  dest_file="$LIB_DIR/$base_name"
+
+  if [[ ! -f "$dest_file" ]] || ! cmp -s "$src_file" "$dest_file"; then
+    cp -a "$src_file" "$dest_file"
+    echo "Copied $base_name"
+  fi
+done
+
+bin_link="$BIN_DIR/llm-janitor"
+lib_target="$LIB_DIR/llm-janitor"
+if [[ ! -L "$bin_link" ]] || [[ "$(readlink "$bin_link")" != "$lib_target" ]]; then
+  rm -f "$bin_link"
+  ln -s "$lib_target" "$bin_link"
+  echo "Linked $bin_link"
+fi
