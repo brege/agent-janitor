@@ -1,45 +1,242 @@
 #!/usr/bin/env bash
 set -euo pipefail
+shopt -s globstar
 
-SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+# locate script directory even when installed under /usr/local/bin
+if [[ -L "${BASH_SOURCE[0]}" ]]; then
+  SOURCE="$(readlink -f "${BASH_SOURCE[0]}")"
+else
+  SOURCE="${BASH_SOURCE[0]}"
+fi
+SCRIPTDIR="$(cd "$(dirname "$SOURCE")" && pwd)"
+ACTION="dry-run"
+SUBCMD="${1:-}"
+shift || true
+AGENT="all"
+LEVEL_OVERRIDE=""
+BASEDIR="${HOME}"
 
-TARGET=${1:-cache}
+trim_leading() {
+  local var="$1"
+  var="${var#"${var%%[![:space:]]*}"}"
+  printf '%s' "$var"
+}
 
-if [[ "$TARGET" == "agents" ]]; then
-  shift || true
-  BASEDIR="${1:-$HOME}"
-  if [[ "$#" -gt 0 ]]; then
-    shift || true
+trim_trailing() {
+  local var="$1"
+  var="${var%"${var##*[![:space:]]}"}"
+  printf '%s' "$var"
+}
+
+trim_both() {
+  local var="$1"
+  var="${var#"${var%%[![:space:]]*}"}"
+  var="${var%"${var##*[![:space:]]}"}"
+  printf '%s' "$var"
+}
+
+parse_manifest() {
+  local files=()
+  local default_manifest="$SCRIPTDIR/janitor.default"
+  local repo_manifest="$SCRIPTDIR/janitor.manifest"
+  local cwd_manifest="$PWD/janitor.manifest"
+  local user_manifest="$HOME/.config/llm-janitor/janitor.manifest"
+
+  [[ -f "$default_manifest" ]] && files+=("$default_manifest")
+  [[ -f "$repo_manifest" ]] && files+=("$repo_manifest")
+  if [[ -f "$cwd_manifest" && "$cwd_manifest" != "$repo_manifest" ]]; then
+    files+=("$cwd_manifest")
   fi
-  if [[ "$BASEDIR" != "/" ]]; then
-    BASEDIR="${BASEDIR%/}"
+  [[ -f "$user_manifest" ]] && files+=("$user_manifest")
+
+  local file line raw trimmed meta rest category level agent neg pattern
+  for file in "${files[@]}"; do
+    [[ -f "$file" ]] || continue
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      raw="${line%$'\r'}"
+      trimmed="$(trim_leading "$(trim_trailing "$raw")")"
+      [[ -z "$trimmed" ]] && continue
+      [[ "${trimmed:0:1}" == "#" ]] && continue
+      [[ "$raw" != *:* ]] && continue
+
+      meta="${raw%%:*}"
+      rest="${raw#*:}"
+      meta="$(trim_both "$meta")"
+      rest="$(trim_leading "$rest")"
+      [[ -z "$meta" ]] && continue
+
+      read -r -a meta_parts <<<"$meta"
+      local count=${#meta_parts[@]}
+      (( count == 0 )) && continue
+      category="${meta_parts[count-1]}"
+
+      level=0
+      agent="all"
+      if (( count > 1 )); then
+        for ((i=0; i<count-1; i++)); do
+          case "${meta_parts[i]}" in
+            level=*) level="${meta_parts[i]#*=}" ;;
+            agent=*) agent="${meta_parts[i]#*=}" ;;
+          esac
+        done
+      fi
+
+      rest="$(trim_leading "$rest")"
+      neg=0
+      if [[ "$rest" == '!'* ]]; then
+        neg=1
+        rest="${rest:1}"
+        rest="$(trim_leading "$rest")"
+      fi
+      pattern="$(trim_trailing "$rest")"
+      [[ -z "$pattern" ]] && continue
+      printf '%s\t%s\t%s\t%s\t%s\n' "$level" "$agent" "$category" "$neg" "$pattern"
+    done < "$file"
+  done
+}
+
+usage() {
+  cat <<EOF
+Usage: llm-janitor {cache|breadcrumbs|system|all} [--agent NAME|all] [--level N] [--dry-run|--confirm] [BASEDIR]
+EOF
+  exit 1
+}
+
+if [[ -z "$SUBCMD" ]]; then
+  usage
+fi
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --agent)
+      AGENT="${2:-}"
+      shift 2
+      ;;
+    --level)
+      LEVEL_OVERRIDE="${2:-}"
+      shift 2
+      ;;
+    --dry-run)
+      ACTION="dry-run"
+      shift
+      ;;
+    --confirm)
+      ACTION="confirm"
+      shift
+      ;;
+    *)
+      # treat as BASEDIR
+      BASEDIR="$1"
+      shift
+      ;;
+  esac
+done
+
+case "$SUBCMD" in
+  cache)       DEFAULT_LEVEL=10; CATEGORY_FILTER="cache" ;;
+  breadcrumbs) DEFAULT_LEVEL=20; CATEGORY_FILTER="breadcrumb" ;;
+  system)      DEFAULT_LEVEL=30; CATEGORY_FILTER="config" ;;
+  all)         DEFAULT_LEVEL=40; CATEGORY_FILTER="" ;; # all categories
+  *) usage ;;
+esac
+
+LEVEL="${LEVEL_OVERRIDE:-$DEFAULT_LEVEL}"
+
+if [[ -n "$BASEDIR" ]]; then
+  if ! BASEDIR="$(cd "$BASEDIR" 2>/dev/null && pwd)"; then
+    echo "x Base directory not found or inaccessible: $BASEDIR"
+    exit 1
+  fi
+fi
+
+if [[ "$SUBCMD" != "breadcrumbs" && "$ACTION" != "confirm" ]]; then
+  echo "dry run only. Use --confirm to actually delete."
+fi
+
+# get parsed manifest lines: level<TAB>agent<TAB>category<TAB>negated<TAB>pattern
+mapfile -t ENTRIES < <(parse_manifest)
+
+expand_pattern() {
+  local raw="$1"
+  # expand leading ~ with HOME; rest passed to shell globbing
+  if [[ "$raw" == "~/"* ]]; then
+    raw="${HOME}${raw:1}"
+  elif [[ "$raw" == "~"* ]]; then
+    raw="${HOME}${raw:1}"
+  elif [[ "$raw" != /* ]]; then
+    raw="${BASEDIR%/}/${raw#./}"
+  fi
+  printf '%s\n' "$raw"
+}
+
+# collect paths
+declare -a TARGETS=()
+declare -A NEGATED_SET=()
+
+for line in "${ENTRIES[@]}"; do
+  IFS=$'\t' read -r lvl agent cat neg pat <<<"$line"
+  # level threshold
+  if (( lvl > LEVEL )); then
+    continue
+  fi
+  # agent filter
+  if [[ "$AGENT" != "all" && "$agent" != "$AGENT" && "$agent" != "all" ]]; then
+    continue
+  fi
+  # category filter
+  if [[ -n "$CATEGORY_FILTER" && "$cat" != "$CATEGORY_FILTER" ]]; then
+    continue
   fi
 
-  print_section() {
-    local label="$1"
-    shift || true
-    local -a paths=("$@")
-    local count=${#paths[@]}
-    if (( count == 0 )); then
-      printf '[i] No %s files found.\n' "$label"
-      return
-    fi
-    printf '[*] %s (%d):\n' "$label" "$count"
-    local path
-    for path in "${paths[@]}"; do
-      printf '    %s\n' "$path"
+  # expand pattern
+  expanded="$(expand_pattern "$pat")"
+
+  # for now, rely on shell globbing
+  shopt -s nullglob
+  matches=( $expanded )
+  shopt -u nullglob
+
+  if [[ "$neg" -eq 1 ]]; then
+    for m in "${matches[@]}"; do
+      NEGATED_SET["$m"]=1
     done
-  }
+  else
+    for m in "${matches[@]}"; do
+      TARGETS+=("$m")
+    done
+  fi
+done
 
-  mapfile -t claude_files < <(find "$BASEDIR" -type f \( -name 'CLAUDE.md' -o -name 'CLAUDE.local.md' \) -print 2>/dev/null | LC_ALL=C sort)
-  mapfile -t agent_files < <(find "$BASEDIR" -type f \( -name 'AGENTS.md' -o -name 'AGENTS.override.md' \) -print 2>/dev/null | LC_ALL=C sort)
+# de-duplicate and apply negations
+declare -a FINAL=()
+declare -A SEEN=()
+for p in "${TARGETS[@]}"; do
+  [[ -z "${p}" ]] && continue
+  if [[ -n "${NEGATED_SET["$p"]+x}" ]]; then
+    continue
+  fi
+  if [[ -n "${SEEN["$p"]+x}" ]]; then
+    continue
+  fi
+  SEEN["$p"]=1
+  FINAL+=("$p")
+done
 
-  echo "[*] Agent breadcrumbs under $BASEDIR:"
-  print_section "CLAUDE.md / CLAUDE.local.md" "${claude_files[@]}"
-  print_section "AGENTS.md / AGENTS.override.md" "${agent_files[@]}"
+echo "found ${#FINAL[@]} matching paths for subcommand '$SUBCMD' (agent=$AGENT, level=$LEVEL)."
+
+if [[ "$ACTION" == "dry-run" ]]; then
+  for p in "${FINAL[@]}"; do
+    printf '  WOULD DELETE %s\n' "$p"
+  done
   exit 0
 fi
 
-bash "$SCRIPT_DIR/claude.sh" "$@"
-bash "$SCRIPT_DIR/codex.sh" "$@"
-bash "$SCRIPT_DIR/codeium.sh" "$@"
+# destructive path
+for p in "${FINAL[@]}"; do
+  if [[ -d "$p" ]]; then
+    rm -rf -- "$p"
+  else
+    rm -f -- "$p"
+  fi
+  printf '  DELETED %s\n' "$p"
+done

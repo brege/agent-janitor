@@ -1,0 +1,42 @@
+# llm-janitor default manifest (gitignore-style)
+# Format: key=value ... category: [! ]pattern
+
+# Level 10: cache (safe to delete)
+level=10 agent=claude cache: ~/.claude/projects/
+level=10 agent=claude cache: ~/.claude/file-history/
+level=10 agent=claude cache: ~/.claude/debug/
+level=10 agent=claude cache: ~/.claude/session-env/
+level=10 agent=claude cache: ~/.claude/shell-snapshots/
+level=10 agent=claude cache: ~/.claude/statsig/
+level=10 agent=claude cache: ~/.claude/todos/
+level=10 agent=claude cache: ~/.claude/history.jsonl
+level=10 agent=claude cache: /tmp/claude-*
+
+level=10 agent=codex cache: ~/.codex/sessions
+level=10 agent=codex cache: ~/.codex/log
+level=10 agent=codex cache: ~/.codex/history.jsonl
+
+level=10 agent=codeium cache: ~/.codeium/code_tracker/active
+level=10 agent=codeium cache: ~/.codeium/code_tracker/history
+level=10 agent=codeium cache: ~/.codeium/context_state
+level=10 agent=codeium cache: ~/.codeium/database
+
+# Level 20: breadcrumbs (list-only)
+level=20 agent=claude breadcrumb: **/CLAUDE.md
+level=20 agent=claude breadcrumb: **/CLAUDE.local.md
+level=20 agent=codex breadcrumb: **/AGENTS.md
+level=20 agent=codex breadcrumb: **/AGENTS.override.md
+
+# Level 30: config (dangerous deletion)
+level=30 agent=claude config: ~/.claude
+level=30 agent=claude config: ! ~/.claude/CLAUDE.md
+level=30 agent=claude config: ! ~/.claude/settings.json
+
+level=30 agent=codex config: ~/.codex
+level=30 agent=codex config: ~/.codex.json*
+
+level=30 agent=codeium config: ~/.codeium
+
+# Level 40: installs/auth (full wipe)
+level=40 agent=claude install: ~/.local/lib/node_modules/@anthropic-ai/claude-code
+level=40 agent=codex install: ~/.npm-global/lib/node_modules/@openai/codex

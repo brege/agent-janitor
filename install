@@ -10,7 +10,7 @@ BIN_DIR=/usr/local/bin
 
 mkdir -p "$LIB_DIR"
 
-for src_file in "$SCRIPT_DIR"/agents/*.sh "$SCRIPT_DIR"/llm-janitor; do
+for src_file in "$SCRIPT_DIR"/llm-janitor "$SCRIPT_DIR"/janitor.default; do
   base_name="${src_file##*/}"
   dest_file="$LIB_DIR/$base_name"
 
