@@ -88,3 +88,9 @@ The syntax mirrors ``.gitignore`` syntax, with some extra dimensions to control 
     level=30 agent=codex breadcrumbs: ! ~/code/**AGENTS.md
 
 
+License    
+-------
+
+GPLv3_
+
+.. _GPLv3: https://github.com/brege/agent-janitor/blob/main/LICENSE
