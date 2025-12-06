@@ -1,4 +1,4 @@
-# llm-janitor default manifest (gitignore-style)
+# agent-janitor default manifest (gitignore-style)
 # Format: key=value ... category: [! ]pattern
 
 # Level 10: cache (safe to delete)

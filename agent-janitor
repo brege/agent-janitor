@@ -40,7 +40,7 @@ parse_manifest() {
   local default_manifest="$SCRIPTDIR/janitor.default"
   local repo_manifest="$SCRIPTDIR/janitor.manifest"
   local cwd_manifest="$PWD/janitor.manifest"
-  local user_manifest="$HOME/.config/llm-janitor/janitor.manifest"
+  local user_manifest="$HOME/.config/agent-janitor/janitor.manifest"
 
   [[ -f "$default_manifest" ]] && files+=("$default_manifest")
   [[ -f "$repo_manifest" ]] && files+=("$repo_manifest")
@@ -97,7 +97,7 @@ parse_manifest() {
 
 usage() {
   cat <<EOF
-Usage: llm-janitor {cache|breadcrumbs|system|all} [--agent NAME|all] [--level N] [--dry-run|--confirm] [BASEDIR]
+Usage: agent-janitor {cache|breadcrumbs|system|all} [--agent NAME|all] [--level N] [--dry-run|--confirm] [BASEDIR]
 EOF
   exit 1
 }
@@ -150,7 +150,7 @@ if [[ -n "$BASEDIR" ]]; then
 fi
 
 if [[ "$SUBCMD" != "breadcrumbs" && "$ACTION" != "confirm" ]]; then
-  echo "dry run only. Use --confirm to actually delete."
+  echo "This is a dry run. Use --confirm (-y) to actually delete."
 fi
 
 # get parsed manifest lines: level<TAB>agent<TAB>category<TAB>negated<TAB>pattern

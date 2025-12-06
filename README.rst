@@ -1,6 +1,6 @@
-===========
-llm-janitor
-===========
+=============
+agent-janitor
+=============
 
 This script is for cleaning up agentic litter scattered across ``~/``.
 
@@ -25,27 +25,27 @@ Usage
 
 .. code-block:: bash
 
-    llm-janitor cache [--agent NAME] [--level N] [--dry-run|--confirm] [BASEDIR]
-    llm-janitor breadcrumbs [same flags]
-    llm-janitor system   # level 30+
-    llm-janitor all      # level 40+
+    agent-janitor cache [--agent NAME] [--level N] [--dry-run|--confirm] [BASEDIR]
+    agent-janitor breadcrumbs [same flags]
+    agent-janitor system   # level 30+
+    agent-janitor all      # level 40+
 
 The levels.
 
 **cache**
-  ``llm-janitor cache`` cleans up level ≤10 targets
+  ``agent-janitor cache`` cleans up level ≤10 targets
     - Claude scratchpads
     - Codex history
     - Codeium history
 
 **breadcrumbs**
-  ``llm-janitor breadcrumbs`` cleans up level ≤20 entries and
+  ``agent-janitor breadcrumbs`` cleans up level ≤20 entries and
     - local ``.claude`` dirs
     - local ``CLAUDE.md`` 
     - local ``AGENTS.md``
 
 **system / all**
-  ``llm-janitor system`` cleans up **all** level ≤30 entries and
+  ``agent-janitor system`` cleans up **all** level ≤30 entries and
     - auth tokens, settings, everything
     - ``~/.claude/``
     - ``~/.codex/``
@@ -63,7 +63,7 @@ Configuration
 
 See `janitor.default`_ for defaults.
 
-.. _`janitor.default`: https://github.com/brege/llm-janitor/blob/main/janitor.default
+.. _`janitor.default`: https://github.com/brege/agent-janitor/blob/main/janitor.default
 
 How it works
 ''''''''''''
@@ -72,7 +72,7 @@ The lookup order starts with ``janitor.default``. To override or append, create 
 
 .. code-block:: bash
 
-   ~/.config/llm-janitor/janitor.manifest
+   ~/.config/agent-janitor/janitor.manifest
 
 The syntax mirrors ``.gitignore`` syntax, with some extra dimensions to control agent and removal level.
 
