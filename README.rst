@@ -25,7 +25,7 @@ Usage
 
 .. code-block:: bash
 
-    agent-janitor cache [--agent NAME] [--level N] [--dry-run|--confirm] [BASEDIR]
+    agent-janitor cache [--agent NAME] [--level N] [--dry-run|--delete] [BASEDIR]
     agent-janitor breadcrumbs [same flags]
     agent-janitor system   # level 30+
     agent-janitor all      # level 40+
@@ -55,7 +55,7 @@ Alternatively, use ``--level N`` to delete Level-N or lower.
 
 Use ``--agent NAME`` to delete only a specific agent's detritus.
 
-By default, the script only lists the candidate removals. Use ``--confirm`` to actually remove files.
+By default, the script only lists the candidate removals. Use ``--delete`` to actually remove files.
 
 
 Configuration

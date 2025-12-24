@@ -97,7 +97,7 @@ parse_manifest() {
 
 usage() {
   cat <<EOF
-Usage: agent-janitor {cache|breadcrumbs|system|all} [--agent NAME|all] [--level N] [--dry-run|--confirm] [BASEDIR]
+Usage: agent-janitor {cache|breadcrumbs|system|all} [--agent NAME|all] [--level N] [--dry-run|--delete] [BASEDIR]
 EOF
   exit 1
 }
@@ -120,7 +120,7 @@ while [[ $# -gt 0 ]]; do
       ACTION="dry-run"
       shift
       ;;
-    --confirm|-y)
+    --delete|-D)
       ACTION="confirm"
       shift
       ;;
