@@ -120,7 +120,7 @@ while [[ $# -gt 0 ]]; do
       ACTION="dry-run"
       shift
       ;;
-    --confirm)
+    --confirm|-y)
       ACTION="confirm"
       shift
       ;;
@@ -226,7 +226,9 @@ echo "found ${#FINAL[@]} matching paths for subcommand '$SUBCMD' (agent=$AGENT, 
 
 if [[ "$ACTION" == "dry-run" ]]; then
   for p in "${FINAL[@]}"; do
-    printf '  WOULD DELETE %s\n' "$p"
+    if [[ -e "$p" ]] || [[ -L "$p" ]]; then
+      printf '  WOULD DELETE %s\n' "$p"
+    fi
   done
   exit 0
 fi
