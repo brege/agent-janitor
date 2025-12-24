@@ -218,6 +218,10 @@ for p in "${TARGETS[@]}"; do
   if [[ -n "${SEEN["$p"]+x}" ]]; then
     continue
   fi
+  # only include paths that actually exist
+  if [[ ! -e "$p" ]] && [[ ! -L "$p" ]]; then
+    continue
+  fi
   SEEN["$p"]=1
   FINAL+=("$p")
 done
@@ -235,6 +239,9 @@ fi
 
 # destructive path
 for p in "${FINAL[@]}"; do
+  if [[ ! -e "$p" ]] && [[ ! -L "$p" ]]; then
+    continue
+  fi
   if [[ -d "$p" ]]; then
     rm -rf -- "$p"
   else
